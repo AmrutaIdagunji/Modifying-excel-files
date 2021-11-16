@@ -1,4 +1,5 @@
-# Importing libraries
+# Importing Libraries
+
 import clr
 clr.AddReference("Microsoft.Office.Interop.Excel")
 clr.AddReference("System")
@@ -6,9 +7,9 @@ clr.AddReference("System.IO")
 
 from Microsoft.Office.Interop import Excel
 from System.Reflection import Missing
-from Spotfire.Dxp.Framework.ApplicationModel import NotificationService
 from System.Runtime.InteropServices import Marshal
 from System import GC
+from System import Environment
 
 #1. Load the excel application
 appExcel = Excel.ApplicationClass()
@@ -16,8 +17,9 @@ appExcel.Visible = False
 appExcel.DisplayAlerts = False
 	
 #2. Import excel file
-strFilePath = "Sample File.xlsx"
-workbook = appExcel.Workbooks.Open(strFilePath)
+strFilePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) # Get the Path to Documents Folder where the Excel file is stored
+strFileName = "Sample File.xlsx"
+workbook = appExcel.Workbooks.Open(strFilePath + "\\" + strFileName)
 
 #3. Get the worksheet
 worksheets = workbook.worksheets
@@ -25,7 +27,7 @@ worksheet = [ws for ws in worksheets if ws.Name == "Sample Corrections"]
 
 #4. Find the last row
 last = worksheet[0].Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell)
-lastUsedRow = last.Row
+lastUsedRow = last.Row + 1
 
 #5. Insert the values into last row
 worksheet[0].Cells[lastUsedRow, 1] = "Value 1"
@@ -34,13 +36,11 @@ worksheet[0].Cells[lastUsedRow, 3] = "Value 3"
 worksheet[0].Cells[lastUsedRow, 4] = "Value 4"
 worksheet[0].Cells[lastUsedRow, 5] = "Value 5"
 
-# Save and close the file
-workbook.SaveAs(strFilePath)
-workbook.Close(True, Missing.Value, Missing.Value)
+#6 Save and close the file
+workbook.save() 
+workbook.Close(True, Missing.Value, Missing.Value) # Close the workbook
+appExcel.Quit() # Close the Application
 
-# quit Excel application
-appExcel.Quit()
-
-# let the garbage collector handle the space utilised by the application, workbook, worksheets etc
-Marshal.FinalReleaseComObject(appExcel);
-GC.Collect();
+# Use the garbage collector to release the objects used
+Marshal.FinalReleaseComObject(appExcel)
+GC.Collect()
